@@ -1,10 +1,7 @@
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from scipy.integrate import solve_ivp
 from Observables import observables_dict
 import scipy
-import itertools
 
 
 class EDMD:
@@ -53,5 +50,18 @@ class EDMD:
         A = self.construct_A()
         # Step 2: Calculate K and get eigenvalues and left and right eigenvectors
         K = np.linalg.pinv(G) @ A
-        self.eigenvalues, self.eigenvectors_left, self.eigenvectors_right = scipy.linalg.eig(K, left=True)
+        # self.eigenvalues, self.eigenvectors_left, self.eigenvectors_right = scipy.linalg.eig(K, left=True)
+        eigenvalues, eigenvectors_left, eigenvectors_right = scipy.linalg.eig(K, left=True)
+        
+        # Sort eigenvalues and eigenvectors        
+        eigvec_right_list = [eigenvectors_right[:,i] for i in range(eigenvectors_right.shape[-1])]
+        eigvec_left_list = [eigenvectors_left[:,i] for i in range(eigenvectors_left.shape[-1])]
+        sorted_idx = np.argsort(eigenvalues)[::-1]
+        self.eigenvalues = eigenvalues[sorted_idx]
+        self.eigenvectors_right = np.array(eigvec_right_list)[sorted_idx]
+        self.eigenvectors_left = np.array(eigvec_left_list)[sorted_idx]
         # Step 3: Compute eigenmodes
+
+    def build_eigenfunction(self, data: pd.DataFrame, eigvec_loc: int):
+        eigenfunction = self.dict_type.segregate_observables_from_variable(self.dict_type.fit(data)).iloc[:,1:].to_numpy() @ self.eigenvectors_right[eigvec_loc, :]
+        return eigenfunction
