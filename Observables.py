@@ -5,10 +5,8 @@ import scipy
 import itertools
 
 class observables_dict:
-    def __init__(self, data: pd.DataFrame, degree) -> None:
+    def __init__(self, degree) -> None:
         self.degree = degree
-        self.data = data.copy(deep=True)
-        self.observable_data = data.copy(deep=True)
     
     @abstractmethod
     def fit(self):
@@ -16,10 +14,20 @@ class observables_dict:
         """
         pass
     
+    @abstractmethod
+    def segregate_observables_from_variable(self):
+        pass
 
 class HermitePairs(observables_dict):
-    
-    def fit(self):
+    def __init__(self, degree: int) -> None:
+        super().__init__(degree)
+        self.data = None
+        self.observable_data = None
+        self.Nk = self.degree**2
+
+    def fit(self, data: pd.DataFrame):
+        self.data = data.copy(deep=True)
+        self.observable_data = data.copy(deep=True)
         poly_vars = []
         no_vars = len(self.data.columns) - 1
         assert no_vars == 2, 'Method only works for one dependent and one independent variable currently'
@@ -37,3 +45,9 @@ class HermitePairs(observables_dict):
         for index, combination in enumerate(hermite_combinations):
             hermite_prod = combination[0][1]*combination[1][1]
             self.observable_data.loc[:,'H' + str(combination[0][0]) + '(x1)' + 'H' + str(combination[1][0])+ '(x2)'] = hermite_prod
+        return self.observable_data
+    
+    def segregate_observables_from_variable(self, data):
+        observables = data.iloc[:,-self.degree**2:]
+        observables.insert(0, 'ID', data.iloc[:,0])
+        return observables
