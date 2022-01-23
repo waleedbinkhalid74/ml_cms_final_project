@@ -52,7 +52,7 @@ class EDMD:
         K = np.linalg.pinv(G) @ A
         # self.eigenvalues, self.eigenvectors_left, self.eigenvectors_right = scipy.linalg.eig(K, left=True)
         eigenvalues, eigenvectors_left, eigenvectors_right = scipy.linalg.eig(K, left=True)
-        
+        print(eigenvectors_left)
         # Sort eigenvalues and eigenvectors        
         eigvec_right_list = [eigenvectors_right[:,i] for i in range(eigenvectors_right.shape[-1])]
         eigvec_left_list = [eigenvectors_left[:,i] for i in range(eigenvectors_left.shape[-1])]
@@ -62,6 +62,26 @@ class EDMD:
         self.eigenvectors_left = np.array(eigvec_left_list)[sorted_idx]
         # Step 3: Compute eigenmodes
 
-    def build_eigenfunction(self, data: pd.DataFrame, eigvec_loc: int):
-        eigenfunction = self.dict_type.segregate_observables_from_variable(self.dict_type.fit(data)).iloc[:,1:].to_numpy() @ self.eigenvectors_right[eigvec_loc, :]
-        return eigenfunction
+    def build_eigenfunction(self, data: pd.DataFrame):
+        eigenfunctions = []
+        for i in range(self.Nk):
+            eigenfunction = self.dict_type.segregate_observables_from_variable(self.dict_type.fit(data)).iloc[:,1:].to_numpy() @ self.eigenvectors_right[i, :]
+            # if np.linalg.norm(eigenfunction, np.inf) > 1e-10:
+            eigenfunctions.append(eigenfunction)# / np.linalg.norm(eigenfunction, np.inf))
+            # else:
+            #     eigenfunctions.append(eigenfunction)
+        eigenfunctions = np.array(eigenfunctions)
+        return eigenfunctions.T
+    
+    def build_eigenmodes(self, B):
+        eigenmodes = []
+        for i in range(self.Nk):
+            mode = self.eigenvectors_left[i,:] @ B
+            if np.linalg.norm(mode) > 1e-10:
+                mode = mode / np.linalg.norm(mode)
+            else:
+                mode = np.zeros_like(mode)
+            eigenmodes.append(mode)
+            
+        eigenmodes = np.array(eigenmodes)
+        return eigenmodes
