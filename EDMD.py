@@ -52,36 +52,41 @@ class EDMD:
         K = np.linalg.pinv(G) @ A
         # self.eigenvalues, self.eigenvectors_left, self.eigenvectors_right = scipy.linalg.eig(K, left=True)
         eigenvalues, eigenvectors_left, eigenvectors_right = scipy.linalg.eig(K, left=True)
-        print(eigenvectors_left)
         # Sort eigenvalues and eigenvectors        
         eigvec_right_list = [eigenvectors_right[:,i] for i in range(eigenvectors_right.shape[-1])]
         eigvec_left_list = [eigenvectors_left[:,i] for i in range(eigenvectors_left.shape[-1])]
         sorted_idx = np.argsort(eigenvalues)[::-1]
         self.eigenvalues = eigenvalues[sorted_idx]
-        self.eigenvectors_right = np.array(eigvec_right_list)[sorted_idx]
-        self.eigenvectors_left = np.array(eigvec_left_list)[sorted_idx]
+        self.eigenvectors_right = np.array(eigvec_right_list)[sorted_idx].T
+        self.eigenvectors_left = np.array(eigvec_left_list)[sorted_idx].T
         # Step 3: Compute eigenmodes
 
-    def build_eigenfunction(self, data: pd.DataFrame):
-        eigenfunctions = []
-        for i in range(self.Nk):
-            eigenfunction = self.dict_type.segregate_observables_from_variable(self.dict_type.fit(data)).iloc[:,1:].to_numpy() @ self.eigenvectors_right[i, :]
-            # if np.linalg.norm(eigenfunction, np.inf) > 1e-10:
-            eigenfunctions.append(eigenfunction)# / np.linalg.norm(eigenfunction, np.inf))
-            # else:
-            #     eigenfunctions.append(eigenfunction)
-        eigenfunctions = np.array(eigenfunctions)
-        return eigenfunctions.T
+    def build_eigenfunction(self, data: pd.DataFrame):        
+        eigenfunctions = self.build_dict_from_data(data).to_numpy() @ self.eigenvectors_right
+        return eigenfunctions
     
+    def calculate_eigenfunction(self, data: pd.DataFrame, eigvec_pos: int):
+        eigenfunction = self.build_dict_from_data(data) @ self.eigenvectors_right[:,eigvec_pos]
+        return eigenfunction
+    
+    def build_dict_from_data(self, data):
+        dict_obs = self.dict_type.segregate_observables_from_variable(self.dict_type.fit(data)).iloc[:,1:]
+        return dict_obs
+        
+    def predict(self, initial_value_df, t_end: int, B):
+        prediction_df = initial_value_df.copy(deep=True)
+        prediction = initial_value_df.copy(deep=True)
+        mode = self.build_eigenmodes(B)
+        eigenvalues_mat = np.diag(self.eigenvalues)
+        for i in range(t_end):
+            func = self.build_eigenfunction(pd.DataFrame(prediction.iloc[-1,:]).T)
+            prediction_mat = func @ eigenvalues_mat @ mode
+            prediction = pd.DataFrame(np.insert(prediction_mat ,0,0).real, columns=list(initial_value_df))
+            prediction_df = pd.concat([prediction_df, prediction])
+
+        return prediction_df
+        
     def build_eigenmodes(self, B):
-        eigenmodes = []
-        for i in range(self.Nk):
-            mode = self.eigenvectors_left[i,:] @ B
-            if np.linalg.norm(mode) > 1e-10:
-                mode = mode / np.linalg.norm(mode)
-            else:
-                mode = np.zeros_like(mode)
-            eigenmodes.append(mode)
-            
-        eigenmodes = np.array(eigenmodes)
+        eigenmodes = np.matrix(self.eigenvectors_left).H @ B
+        eigenmodes = eigenmodes / np.linalg.norm(eigenmodes)
         return eigenmodes
