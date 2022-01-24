@@ -44,7 +44,7 @@ class EDMD:
         A = 1/M * A
         return A
     
-    def fit(self):
+    def fit(self, B=None):
         # Step 1: Construct G and A
         G = self.construct_G()
         A = self.construct_A()
@@ -59,6 +59,11 @@ class EDMD:
         self.eigenvalues = eigenvalues[sorted_idx]
         self.eigenvectors_right = np.array(eigvec_right_list)[sorted_idx].T
         self.eigenvectors_left = np.array(eigvec_left_list)[sorted_idx].T
+        
+        if B == None:
+            self.B = self.estimate_B()
+        else:
+            self.B = B
         # Step 3: Compute eigenmodes
 
     def build_eigenfunction(self, data: pd.DataFrame):        
@@ -73,20 +78,31 @@ class EDMD:
         dict_obs = self.dict_type.segregate_observables_from_variable(self.dict_type.fit(data)).iloc[:,1:]
         return dict_obs
         
-    def predict(self, initial_value_df, t_end: int, B):
+    def predict(self, initial_value_df, t_end: int):
         prediction_df = initial_value_df.copy(deep=True)
         prediction = initial_value_df.copy(deep=True)
-        mode = self.build_eigenmodes(B)
+        mode = self.build_eigenmodes()
         eigenvalues_mat = np.diag(self.eigenvalues)
         for i in range(t_end):
             func = self.build_eigenfunction(pd.DataFrame(prediction.iloc[-1,:]).T)
-            prediction_mat = func @ eigenvalues_mat @ mode
-            prediction = pd.DataFrame(np.insert(prediction_mat ,0,0).real, columns=list(initial_value_df))
+            prediction_mat = func @ eigenvalues_mat @ mode            
+            prediction = pd.DataFrame(np.insert(prediction_mat ,0,initial_value_df['ID'].iloc[0]).real, columns=list(initial_value_df))
             prediction_df = pd.concat([prediction_df, prediction])
 
         return prediction_df
         
-    def build_eigenmodes(self, B):
-        eigenmodes = np.matrix(self.eigenvectors_left).H @ B
+    def build_eigenmodes(self):
+        eigenmodes = np.matrix(self.eigenvectors_left).H @ self.B
         eigenmodes = eigenmodes / np.linalg.norm(eigenmodes)
         return eigenmodes
+        # return np.matrix(np.linalg.inv(self.eigenvectors_right))
+    
+    def estimate_B(self):
+        B = np.linalg.lstsq(self.obs_dict_x.iloc[:,1:].to_numpy(), self.x_data.iloc[:,1:].to_numpy(), rcond=None)[0]
+        return B
+    
+    def set_B(self, B:np.array):
+        self.B = B
+        
+    def koopman_matrix(self):
+        return self.eigenvectors_right @ np.diag(self.eigenvalues) @ np.linalg.inv(self.eigenvectors_right)
