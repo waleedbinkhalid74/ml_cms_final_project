@@ -58,7 +58,8 @@ class EDMD:
         sorted_idx = np.argsort(eigenvalues)[::-1]
         self.eigenvalues = eigenvalues[sorted_idx]
         self.eigenvectors_right = np.array(eigvec_right_list)[sorted_idx].T
-        self.eigenvectors_left = np.array(eigvec_left_list)[sorted_idx].T
+        # self.eigenvectors_left = np.array(eigvec_left_list)[sorted_idx].T
+        self.eigenvectors_left = np.linalg.inv(self.eigenvectors_right)
         
         if B == None:
             self.B = self.estimate_B()
@@ -92,8 +93,8 @@ class EDMD:
         return prediction_df
         
     def build_eigenmodes(self):
-        eigenmodes = np.matrix(self.eigenvectors_left).H @ self.B
-        eigenmodes = eigenmodes / np.linalg.norm(eigenmodes)
+        eigenmodes = np.matrix(self.eigenvectors_left) @ self.B
+        eigenmodes = eigenmodes #/ np.linalg.norm(eigenmodes)
         return eigenmodes
         # return np.matrix(np.linalg.inv(self.eigenvectors_right))
     
