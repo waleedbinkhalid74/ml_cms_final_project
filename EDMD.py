@@ -80,17 +80,23 @@ class EDMD:
         return dict_obs
         
     def predict(self, initial_value_df, t_end: int):
-        prediction_df = initial_value_df.copy(deep=True)
-        prediction = initial_value_df.copy(deep=True)
-        mode = self.build_eigenmodes()
-        eigenvalues_mat = np.diag(self.eigenvalues)
-        for i in range(t_end):
-            func = self.build_eigenfunction(pd.DataFrame(prediction.iloc[-1,:]).T)
-            prediction_mat = func @ eigenvalues_mat @ mode            
-            prediction = pd.DataFrame(np.insert(prediction_mat ,0,initial_value_df['ID'].iloc[0]).real, columns=list(initial_value_df))
-            prediction_df = pd.concat([prediction_df, prediction])
-
-        return prediction_df
+        
+        final_prediction = initial_value_df.copy(deep=True)
+        # print(len(final_prediction))
+        for id in initial_value_df.ID.unique():
+            prediction_df = initial_value_df[initial_value_df['ID'] == id].copy(deep=True)
+            prediction = initial_value_df[initial_value_df['ID'] == id].copy(deep=True)
+            mode = self.build_eigenmodes()
+            eigenvalues_mat = np.diag(self.eigenvalues)
+            for i in range(t_end):
+                func = self.build_eigenfunction(pd.DataFrame(prediction.iloc[-1,:]).T)
+                prediction_mat = func @ eigenvalues_mat @ mode            
+                prediction = pd.DataFrame(np.insert(prediction_mat ,0, prediction['ID'].iloc[0]).real, columns=list(initial_value_df))
+                prediction_df = pd.concat([prediction_df, prediction])
+            final_prediction = pd.concat([final_prediction, prediction_df])
+            # print(len(final_prediction))
+        # return prediction_df
+        return final_prediction
         
     def build_eigenmodes(self):
         eigenmodes = np.matrix(self.eigenvectors_left) @ self.B
