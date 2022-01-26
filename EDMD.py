@@ -17,7 +17,7 @@ class EDMD:
         self.Nk = self.dict_type.Nk
         self.eigenvalues = None
         self.eigenvectors_right = None
-        self.eigenvectors_left = None
+        self.eigenvectors_left_conj = None
 
     def segregate_xy(self):
         data_x = self.raw_data.iloc[:,0:self.dim+1]
@@ -50,7 +50,6 @@ class EDMD:
         A = self.construct_A()
         # Step 2: Calculate K and get eigenvalues and left and right eigenvectors
         K = np.linalg.pinv(G) @ A
-        # self.eigenvalues, self.eigenvectors_left, self.eigenvectors_right = scipy.linalg.eig(K, left=True)
         eigenvalues, eigenvectors_left, eigenvectors_right = scipy.linalg.eig(K, left=True)
         # Sort eigenvalues and eigenvectors        
         eigvec_right_list = [eigenvectors_right[:,i] for i in range(eigenvectors_right.shape[-1])]
@@ -58,8 +57,7 @@ class EDMD:
         sorted_idx = np.argsort(eigenvalues)[::-1]
         self.eigenvalues = eigenvalues[sorted_idx]
         self.eigenvectors_right = np.array(eigvec_right_list)[sorted_idx].T
-        # self.eigenvectors_left = np.array(eigvec_left_list)[sorted_idx].T
-        self.eigenvectors_left = np.linalg.inv(self.eigenvectors_right)
+        self.eigenvectors_left_conj = np.linalg.inv(self.eigenvectors_right)
         
         if B == None:
             self.B = self.estimate_B()
@@ -99,7 +97,7 @@ class EDMD:
         return final_prediction
         
     def build_eigenmodes(self):
-        eigenmodes = np.matrix(self.eigenvectors_left) @ self.B
+        eigenmodes = np.matrix(self.eigenvectors_left_conj) @ self.B
         eigenmodes = eigenmodes #/ np.linalg.norm(eigenmodes)
         return eigenmodes
         # return np.matrix(np.linalg.inv(self.eigenvectors_right))
