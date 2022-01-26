@@ -77,11 +77,11 @@ class HermitePairs(observables_dict):
 
         Args:
             data (pd.DataFrame): dataframe with the column structure as
-        ID      Var_1        Var_1        Obs_1       Obs_2       ...       Obs_n
+        ID      Var_1        Var_1        Obs_1       Obs_2       ...       Obs_N_k
 
         Returns:
             pd.DataFrame: dataframe with the column structure as
-        ID        Obs_1       Obs_2       ...       Obs_n
+        ID        Obs_1       Obs_2       ...       Obs_N_k
 
         """
         
@@ -187,11 +187,11 @@ class Polynomials(observables_dict):
 
         Args:
             data (pd.DataFrame): dataframe with the column structure as
-        ID      Var_1        Var_1        Obs_1       Obs_2       ...       Obs_n
+        ID      Var_1        Var_1        Obs_1       Obs_2       ...       Obs_N_k
 
         Returns:
             pd.DataFrame: dataframe with the column structure as
-        ID        Obs_1       Obs_2       ...       Obs_n
+        ID        Obs_1       Obs_2       ...       Obs_N_k
 
         """
         
