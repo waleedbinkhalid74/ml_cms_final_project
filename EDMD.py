@@ -2,8 +2,8 @@ import numpy as np
 import pandas as pd
 from Observables import observables_dict
 import scipy
+from tqdm import tqdm
 from typing import Tuple
-
 class EDMD:
     def __init__(self, data: pd.DataFrame, dim: int, dict: observables_dict):
         """Initializes the Extended Dynamic Mode class object with training data, dictionary of observables and data dimensions
@@ -89,7 +89,7 @@ class EDMD:
         A = self.construct_A()
         # Step 2: Calculate K and get eigenvalues and left and right eigenvectors
         K = np.linalg.pinv(G) @ A
-        eigenvalues, eigenvectors_right = scipy.linalg.eig(K)
+        eigenvalues, eigenvectors_right = np.linalg.eig(K)
         # Sort eigenvalues and eigenvectors        
         self.order_eigenvalues_and_vectors(eigenvalues=eigenvalues, eigenvectors=eigenvectors_right)
         # Calculate B if not provided by user
@@ -124,7 +124,7 @@ class EDMD:
         Returns:
             np.array: eigenfunctions stacked in a matrix
         """
-                
+        # print(self.build_dict_from_data(data).to_numpy().shape)
         eigenfunctions = self.build_dict_from_data(data).to_numpy() @ self.eigenvectors_right
         return eigenfunctions
     
@@ -171,7 +171,7 @@ class EDMD:
         """
         
         final_prediction = initial_value_df.copy(deep=True)
-        for id in initial_value_df.ID.unique():
+        for id in tqdm(initial_value_df.ID.unique()):
             prediction_df = initial_value_df[initial_value_df['ID'] == id].copy(deep=True)
             prediction = initial_value_df[initial_value_df['ID'] == id].copy(deep=True)
             mode = self.eigenmodes

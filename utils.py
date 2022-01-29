@@ -1,4 +1,6 @@
 import pandas as pd
+from tqdm import tqdm 
+import numpy as np
 
 def plot_data(data: pd.DataFrame, ax):
     """Plots the trajectories for all snapshot pair datapoints
@@ -53,3 +55,46 @@ def format_traj_df(df: pd.DataFrame):
     df = df.rename(name_col_changer, axis='columns')
     df.drop(['delete'], axis=1, inplace=True)
     return df
+
+def find_center_of_gravity(traj_df:pd.DataFrame):
+    min_steps = traj_df.groupby('ID').count().iloc[:,1].min()
+    ids = list(traj_df.ID.unique())
+    total_peds = ids[-1]
+    center_of_gravity = []
+    for step in tqdm(range(min_steps)):
+        x1_sum = 0
+        x2_sum = 0
+        for id in ids:
+            df = traj_df[traj_df.ID == id]
+            x1_sum += df.iloc[step, 1]
+            x2_sum += df.iloc[step, 2]
+        x1_mean = x1_sum / total_peds     
+        x2_mean = x2_sum / total_peds
+        center_of_gravity.append([x1_mean, x2_mean])
+    center_of_gravity = np.array(center_of_gravity)
+    return center_of_gravity
+
+def append_end_loc_to_ped_traj(traj_df_formatted: pd.DataFrame):
+    max_steps = traj_df_formatted.groupby('ID').count().iloc[:,1].max()
+    for ped in list(traj_df_formatted.ID.unique()):
+        df = traj_df_formatted[traj_df_formatted.ID == ped]
+        curr_steps = len(df)
+        if curr_steps < max_steps:
+            last_loc = df.iloc[-1,:].to_numpy()
+            df_to_append = pd.DataFrame(np.tile(last_loc, (max_steps - curr_steps, 1)), columns=list(traj_df_formatted.columns))
+            traj_df_formatted = traj_df_formatted.append(df_to_append)
+    traj_df_formatted.reset_index(drop=True, inplace=True)
+    return traj_df_formatted
+
+def remove_end_loc_to_ped_traj(traj_df: pd.DataFrame):
+    min_steps = traj_df.groupby('ID').count().iloc[:,1].min()
+    traj_df_formatted = pd.DataFrame()
+    for ped in list(traj_df.ID.unique()):
+        df = traj_df[traj_df.ID == ped]
+        curr_steps = len(df)
+        if curr_steps > min_steps:
+            df.reset_index(drop=True, inplace=True)
+            df = df.drop(range(min_steps, len(df)))
+            traj_df_formatted = traj_df_formatted.append(df)
+    traj_df_formatted.reset_index(drop=True, inplace=True)
+    return traj_df_formatted

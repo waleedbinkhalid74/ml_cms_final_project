@@ -2,6 +2,7 @@ from abc import abstractmethod
 import numpy as np
 import pandas as pd
 import scipy
+from scipy import special
 import itertools
 
 class observables_dict:
@@ -61,7 +62,7 @@ class HermitePairs(observables_dict):
         for vars in range(no_vars):
             poly = []
             for deg in range(self.degree):
-                hermite_poly = scipy.special.hermite(deg, monic=False)
+                hermite_poly = special.hermite(deg, monic=False)
                 poly.append((deg, hermite_poly(self.data[self.data.columns[vars+1]])))
             poly_vars.append(poly)
         
@@ -149,7 +150,7 @@ class Polynomials(observables_dict):
         self.observable_data = None
         # TODO: Qais please see if you are able to generalize this for high dimensions
         # Number of observables is the square of the polynomial ONLY if data is two dimensional. In general it should be self.degree**dimensions
-        self.Nk = self.degree**2 
+        self.Nk = None
         
     def fit(self, data:pd.DataFrame) -> pd.DataFrame:
         """Calculates the first "degree" number of polynomials using all available variables in data  
@@ -161,7 +162,7 @@ class Polynomials(observables_dict):
         Returns:
             (pd.DataFrame): Same dataframe as input but with N_k additional columns each containing a hermite pair.
         """
-        
+
         self.data = data.copy(deep=True)
         self.observable_data = data.copy(deep=True)
         poly_vars = []
@@ -180,6 +181,7 @@ class Polynomials(observables_dict):
         for index, combination in enumerate(poly_combinations):
             poly_prod = combination[0][1]*combination[1][1]
             self.observable_data.loc[:,  'x1^' + str(combination[0][0]) + 'x2^' + str(combination[1][0])] = poly_prod
+        self.Nk = len(list(self.observable_data.columns)) - 1
         return self.observable_data
     
     def segregate_observables_from_variable(self, data: pd.DataFrame) -> pd.DataFrame:
@@ -195,6 +197,6 @@ class Polynomials(observables_dict):
 
         """
         
-        observables = data.iloc[:,-self.degree**2:]
+        observables = data.iloc[:,1:]
         observables.insert(0, 'ID', data.iloc[:,0])
         return observables
