@@ -33,3 +33,23 @@ def add_arrow(data: pd.DataFrame, ax):
     color="black",
     head_width=0.1,
 )
+    
+    
+def name_col_changer(col_name):
+    if 'pedestrianId' in col_name:
+        return 'ID'
+    elif 'startX' in col_name:
+        return 'x1'
+    elif 'startY' in col_name:
+        return 'x2'
+    elif 'endX' in col_name:
+        return 'y1'
+    elif 'endY' in col_name:
+        return 'y2'
+    else:
+        return 'delete'
+    
+def format_traj_df(df: pd.DataFrame):
+    df = df.rename(name_col_changer, axis='columns')
+    df.drop(['delete'], axis=1, inplace=True)
+    return df
