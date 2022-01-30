@@ -181,7 +181,7 @@ class Polynomials(observables_dict):
         for index, combination in enumerate(poly_combinations):
             poly_prod = combination[0][1]*combination[1][1]
             self.observable_data.loc[:,  'x1^' + str(combination[0][0]) + 'x2^' + str(combination[1][0])] = poly_prod
-        self.Nk = len(list(self.observable_data.columns)) - 1
+        self.Nk = len(list(self.observable_data.columns)) - 3
         return self.observable_data
     
     def segregate_observables_from_variable(self, data: pd.DataFrame) -> pd.DataFrame:
@@ -197,6 +197,6 @@ class Polynomials(observables_dict):
 
         """
         
-        observables = data.iloc[:,1:]
+        observables = data.iloc[:,3:]
         observables.insert(0, 'ID', data.iloc[:,0])
         return observables
