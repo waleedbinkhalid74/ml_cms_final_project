@@ -80,8 +80,13 @@ def append_end_loc_to_ped_traj(traj_df_formatted: pd.DataFrame):
         df = traj_df_formatted[traj_df_formatted.ID == ped]
         curr_steps = len(df)
         if curr_steps < max_steps:
+            # second_last_loc = df.iloc[-2,:].to_numpy()            
             last_loc = df.iloc[-1,:].to_numpy()
+            # difference = last_loc - second_last_loc
+            # difference[0] = ped
+            # print(difference.shape, difference)
             df_to_append = pd.DataFrame(np.tile(last_loc, (max_steps - curr_steps, 1)), columns=list(traj_df_formatted.columns))
+            # df_to_append = pd.DataFrame(np.tile(difference, (max_steps - curr_steps, 1)), columns=list(traj_df_formatted.columns))
             traj_df_formatted = traj_df_formatted.append(df_to_append)
     traj_df_formatted.reset_index(drop=True, inplace=True)
     return traj_df_formatted
