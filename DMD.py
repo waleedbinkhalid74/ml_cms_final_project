@@ -22,7 +22,9 @@ class DMD:
         self.dt = self.t[1] - self.t[0]
         self.eig_vals = None
         self.phi = None
-        self.r = len(self.t)
+        self.b = None
+        self.rank = np.linalg.matrix_rank(self.data)
+        self.r = self.rank
 
     def get_modes(self, modes: np.int32 = np.iinfo(np.int32).max):
         """
@@ -33,7 +35,7 @@ class DMD:
         Returns:
             2 dim np.array: DMD modes
         """
-        self.r = min(modes, np.linalg.matrix_rank(self.data))
+        self.r = min(modes, self.rank)
 
         u, s, vh = svd(self.X0, full_matrices=False)
         v = vh.conj().T
@@ -45,6 +47,10 @@ class DMD:
 
         self.eig_vals, eig_vectors = np.linalg.eig(A_tilda)
 
+        idx = self.eig_vals.argsort()
+        self.eig_vals = self.eig_vals[idx]
+        eig_vectors = eig_vectors[:, idx]
+
         self.phi = self.X1 @ v_r @ inv_s @ eig_vectors
 
         return self.phi
@@ -54,8 +60,7 @@ class DMD:
         Reconstruct the data using the calculated modes.
         Args:
         Returns:
-            2 dim np.array: reconstructed data using DMD,
-            1 dim np.array: the coefficients of
+            2 dim np.array: reconstructed data using DMD
         """
         if self.phi is None:
             self.get_modes()
@@ -76,18 +81,19 @@ class DMD:
         Args:
             timesteps (int): number of future time steps to predict
         Returns:
-            2 dim np.array: reconstructed data using DMD,
-            1 dim np.array: the coefficients of
+            2 dim np.array: predicted data using DMD
         """
         if self.phi is None:
             self.get_modes()
+        if self.b is None:
+            self.b = np.linalg.pinv(self.phi) @ self.data[:, 0]
 
-        b = np.linalg.pinv(self.phi) @ self.data[:, 0]
         prediction = np.zeros((self.r, timesteps), dtype=self.data.dtype)
 
         for i in range(timesteps):
-            prediction[:, i] = b * np.power(self.eig_vals, (len(self.t) + i) * self.dt)
+            prediction[:, i] = self.b * np.power(self.eig_vals, (len(self.t) + i) * self.dt)
 
         predicated_data = self.phi @ prediction
 
         return predicated_data
+
