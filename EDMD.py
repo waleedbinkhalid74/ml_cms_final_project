@@ -40,9 +40,10 @@ class EDMD:
 
         """
 
-        data_x = self.raw_data.iloc[:,0:self.dim+1]
-        data_y = self.raw_data.iloc[:,self.dim+1:]
+        data_x = self.raw_data.iloc[:,:self.dim+2]
+        data_y = self.raw_data.iloc[:,self.dim+2:]
         data_y.insert(0, 'ID', data_x.iloc[:,0])        
+        data_y.insert(1, 'time', data_x.iloc[:,1])        
         return data_x, data_y
 
     def construct_G(self) -> np.array:
@@ -54,7 +55,7 @@ class EDMD:
         
         G = np.zeros((self.Nk, self.Nk))
         for id in self.obs_dict_x['ID'].unique():
-            obs_m = self.obs_dict_x[self.obs_dict_x['ID'] == id].iloc[:,1:].to_numpy()
+            obs_m = self.obs_dict_x[self.obs_dict_x['ID'] == id].iloc[:,2:].to_numpy()
             G = G + obs_m.T @ obs_m
         M = self.obs_dict_x['ID'].unique().max() + 1
         G = 1/M * G
@@ -69,8 +70,8 @@ class EDMD:
         
         A = np.zeros((self.Nk, self.Nk))
         for id in self.obs_dict_x['ID'].unique():
-            obs_m_x = self.obs_dict_x[self.obs_dict_x['ID'] == id].iloc[:,1:].to_numpy()
-            obs_m_y = self.obs_dict_y[self.obs_dict_y['ID'] == id].iloc[:,1:].to_numpy()
+            obs_m_x = self.obs_dict_x[self.obs_dict_x['ID'] == id].iloc[:,2:].to_numpy()
+            obs_m_y = self.obs_dict_y[self.obs_dict_y['ID'] == id].iloc[:,2:].to_numpy()
             A = A + obs_m_x.T @ obs_m_y
         M = self.obs_dict_x['ID'].unique().max() + 1
         A = 1/M * A
@@ -124,7 +125,6 @@ class EDMD:
         Returns:
             np.array: eigenfunctions stacked in a matrix
         """
-        # print(self.build_dict_from_data(data).to_numpy().shape)
         eigenfunctions = self.build_dict_from_data(data).to_numpy() @ self.eigenvectors_right
         return eigenfunctions
     
@@ -139,7 +139,7 @@ class EDMD:
         Returns:
             np.array: single eigenfunction
         """
-        
+
         eigenfunction = self.build_dict_from_data(data) @ self.eigenvectors_right[:,eigvec_pos]
         return eigenfunction
     
@@ -152,13 +152,13 @@ class EDMD:
             
         Returns:
             pd.DataFrame: Dictionary of observables in format
-            ID      Obs_1        Obs_2      ...     Obs_N_k
+            Obs_1        Obs_2      ...     Obs_N_k
         """
         
-        dict_obs = self.dict_type.segregate_observables_from_variable(self.dict_type.fit(data)).iloc[:,1:]
+        dict_obs = self.dict_type.segregate_observables_from_variable(self.dict_type.fit(data)).iloc[:,2:]
         return dict_obs
         
-    def predict(self, initial_value_df: pd.DataFrame, t_end: int) -> pd.DataFrame:
+    def predict(self, initial_value_df: pd.DataFrame, t_range: np.array) -> pd.DataFrame:
         """Uses the eigenvalues modes and functions to predict future states of the system given an initial condition
 
         Args:
@@ -170,16 +170,17 @@ class EDMD:
             pd.DataFrame: Resulting prediction
         """
         
-        final_prediction = initial_value_df.copy(deep=True)
+        final_prediction = pd.DataFrame()#initial_value_df.copy(deep=True)
         for id in tqdm(initial_value_df.ID.unique()):
             prediction_df = initial_value_df[initial_value_df['ID'] == id].copy(deep=True)
             prediction = initial_value_df[initial_value_df['ID'] == id].copy(deep=True)
             mode = self.eigenmodes
             eigenvalues_mat = np.diag(self.eigenvalues)
-            for i in range(t_end):
+            for t in t_range[1:]:
                 func = self.build_eigenfunction(pd.DataFrame(prediction.iloc[-1,:]).T)
-                prediction_mat = func @ eigenvalues_mat @ mode            
-                prediction = pd.DataFrame(np.insert(prediction_mat ,0, prediction['ID'].iloc[0]).real, columns=list(initial_value_df))
+                prediction_mat = func @ eigenvalues_mat @ mode
+                prediction = pd.DataFrame(np.insert(prediction_mat ,0, prediction[['ID', 'time']].iloc[0]).real, columns=list(initial_value_df.columns))
+                prediction.iloc[-1,1] = t
                 prediction_df = pd.concat([prediction_df, prediction])
             final_prediction = pd.concat([final_prediction, prediction_df])
         return final_prediction
@@ -197,7 +198,7 @@ class EDMD:
         Returns:
             np.array: B matrix
         """
-        B = np.linalg.lstsq(self.obs_dict_x.iloc[:,1:].to_numpy(), self.x_data.iloc[:,1:].to_numpy(), rcond=None)[0]
+        B = np.linalg.lstsq(self.obs_dict_x.iloc[:,2:].to_numpy(), self.x_data.iloc[:,2:].to_numpy(), rcond=None)[0]
         return B
     
     def set_B(self, B:np.array):

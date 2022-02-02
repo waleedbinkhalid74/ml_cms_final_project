@@ -55,7 +55,7 @@ class HermitePairs(observables_dict):
         self.data = data.copy(deep=True)
         self.observable_data = data.copy(deep=True)
         poly_vars = []
-        no_vars = len(self.data.columns) - 1
+        no_vars = len(self.data.columns) - 2
         assert no_vars == 2, 'Method only works for one dependent and one independent variable currently'
 
         # Calculate the hermite polynimials and store in a list with degree of polynomial
@@ -63,7 +63,7 @@ class HermitePairs(observables_dict):
             poly = []
             for deg in range(self.degree):
                 hermite_poly = special.hermite(deg, monic=False)
-                poly.append((deg, hermite_poly(self.data[self.data.columns[vars+1]])))
+                poly.append((deg, hermite_poly(self.data[self.data.columns[vars+2]])))
             poly_vars.append(poly)
         
         hermite_combinations = list(itertools.product(poly_vars[0], poly_vars[1]))
@@ -88,6 +88,7 @@ class HermitePairs(observables_dict):
         
         observables = data.iloc[:,-self.degree**2:]
         observables.insert(0, 'ID', data.iloc[:,0])
+        observables.insert(1, 'time', data.iloc[:,1])
         return observables
     
 class Identity(observables_dict):
@@ -115,7 +116,7 @@ class Identity(observables_dict):
         """
                     
         self.data = data.copy(deep=True)
-        self.observable_data = pd.concat([self.data, self.data.iloc[:,1:]], axis=1)
+        self.observable_data = pd.concat([self.data, self.data.iloc[:,2:]], axis=1)
         
         return self.observable_data
 
@@ -134,6 +135,7 @@ class Identity(observables_dict):
         
         observables = data.iloc[:,-self.Nk:]
         observables.insert(0, 'ID', data.iloc[:,0])
+        observables.insert(1, 'time', data.iloc[:,1])
         return observables
     
 class Polynomials(observables_dict):
@@ -166,13 +168,13 @@ class Polynomials(observables_dict):
         self.data = data.copy(deep=True)
         self.observable_data = data.copy(deep=True)
         poly_vars = []
-        no_vars = len(self.data.columns) - 1
+        no_vars = len(self.data.columns) - 2
         assert no_vars == 2, 'Method only works for one dependent and one independent variable currently'
         # Calculate the hermite polynimials and store in a list with degree of polynomial
         for vars in range(no_vars):
             poly = []
             for deg in range(0, self.degree+1):
-                polynomial = self.data[self.data.columns[vars+1]]**deg
+                polynomial = self.data[self.data.columns[vars+2]]**deg
                 poly.append((deg, polynomial))
             poly_vars.append(poly)
         poly_combinations = list(itertools.product(poly_vars[0], poly_vars[1]))
@@ -181,7 +183,7 @@ class Polynomials(observables_dict):
         for index, combination in enumerate(poly_combinations):
             poly_prod = combination[0][1]*combination[1][1]
             self.observable_data.loc[:,  'x1^' + str(combination[0][0]) + 'x2^' + str(combination[1][0])] = poly_prod
-        self.Nk = len(list(self.observable_data.columns)) - 3
+        self.Nk = len(list(self.observable_data.columns)) - 4
         return self.observable_data
     
     def segregate_observables_from_variable(self, data: pd.DataFrame) -> pd.DataFrame:
@@ -197,6 +199,7 @@ class Polynomials(observables_dict):
 
         """
         
-        observables = data.iloc[:,3:]
+        observables = data.iloc[:,4:]
         observables.insert(0, 'ID', data.iloc[:,0])
+        observables.insert(1, 'time', data.iloc[:,1])
         return observables
