@@ -133,6 +133,37 @@ def mse_all_traj(df_1, df_2):
     mse_error = mse_error / i
     return mse_error
 
+def resample_trajectory(traj_df, delta_t):
+    resampled_list = []
+    for ped in tqdm(traj_df.pedestrianId.unique()):
+        df = traj_df[traj_df.pedestrianId == ped]
+        t_span = np.arange(0.4, df.simTime.iloc[-1], delta_t)
+        resampled_df = pd.DataFrame()
+        resampled_df['time'] = t_span
+        resampled_df['x1'] = 0
+        resampled_df['x2'] = 0
+        resampled_df['y1'] = 0
+        resampled_df['y2'] = 0
+        resampled_df.insert(0, 'ID', df.pedestrianId.iloc[0])
+        start = df.iloc[0]
+        actual_delta_t = np.diff(df.simTime.to_numpy())[0]
+
+        for i, time in enumerate(t_span):
+            if df[df['simTime'] >= time].empty:
+                continue
+            else:
+                second_last = df[df['simTime'] <= time].iloc[-1]
+                last = df[df['simTime'] >= time].iloc[0]
+                resampled_df['x1'].iloc[i] = second_last['startX-PID1'] + (last['startX-PID1'] - second_last['startX-PID1']) * delta_t / actual_delta_t 
+                resampled_df['x2'].iloc[i] = second_last['startY-PID1'] + (last['startY-PID1'] - second_last['startY-PID1']) * delta_t / actual_delta_t 
+                resampled_df['y1'].iloc[i] = second_last['endX-PID1'] + (last['endX-PID1'] - second_last['endX-PID1']) * delta_t / actual_delta_t 
+                resampled_df['y2'].iloc[i] = second_last['endY-PID1'] + (last['endY-PID1'] - second_last['endY-PID1']) * delta_t / actual_delta_t 
+#                 print(time, last['simTime'], second_last['simTime'], resampled_df['x1'].iloc[i])
+        resampled_list.append(resampled_df)
+    
+    resampled_trajectories = pd.concat(resampled_list)
+    resampled_trajectories.reset_index(drop=True, inplace=True)
+    return resampled_trajectories
 # TODO: Delete later
 # def append_end_loc_to_ped_traj(traj_df_formatted: pd.DataFrame):
 #     max_steps = traj_df_formatted.groupby('ID').count().iloc[:,1].max()
