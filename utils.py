@@ -129,6 +129,7 @@ def mse_all_traj(df_1, df_2):
         df1 = df_1[df_1.ID == traj]
         df2 = df_2[df_2.ID == traj]
         mse_error += mse_calc(df1.iloc[:,2:4].to_numpy(), df2.iloc[:,2:4].to_numpy())
+    i += 1
     mse_error = mse_error / i
     return mse_error
 
