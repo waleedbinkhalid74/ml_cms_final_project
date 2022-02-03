@@ -154,10 +154,14 @@ def resample_trajectory(traj_df, delta_t):
             else:
                 second_last = df[df['simTime'] <= time].iloc[-1]
                 last = df[df['simTime'] >= time].iloc[0]
-                resampled_df['x1'].iloc[i] = second_last['startX-PID1'] + (last['startX-PID1'] - second_last['startX-PID1']) * delta_t / actual_delta_t 
-                resampled_df['x2'].iloc[i] = second_last['startY-PID1'] + (last['startY-PID1'] - second_last['startY-PID1']) * delta_t / actual_delta_t 
-                resampled_df['y1'].iloc[i] = second_last['endX-PID1'] + (last['endX-PID1'] - second_last['endX-PID1']) * delta_t / actual_delta_t 
-                resampled_df['y2'].iloc[i] = second_last['endY-PID1'] + (last['endY-PID1'] - second_last['endY-PID1']) * delta_t / actual_delta_t 
+                dt = time - second_last.simTime
+                # print(time, second_last.simTime, dt, actual_delta_t)
+                # print(last['startX-PID1'], second_last['startX-PID1'])
+                
+                resampled_df['x1'].iloc[i] = second_last['startX-PID1'] + (last['startX-PID1'] - second_last['startX-PID1']) * dt / actual_delta_t 
+                resampled_df['x2'].iloc[i] = second_last['startY-PID1'] + (last['startY-PID1'] - second_last['startY-PID1']) * dt / actual_delta_t 
+                resampled_df['y1'].iloc[i] = second_last['endX-PID1'] + (last['endX-PID1'] - second_last['endX-PID1']) * dt / actual_delta_t 
+                resampled_df['y2'].iloc[i] = second_last['endY-PID1'] + (last['endY-PID1'] - second_last['endY-PID1']) * dt / actual_delta_t 
 #                 print(time, last['simTime'], second_last['simTime'], resampled_df['x1'].iloc[i])
         resampled_list.append(resampled_df)
     
@@ -194,3 +198,30 @@ def resample_trajectory(traj_df, delta_t):
 #             traj_df_formatted = traj_df_formatted.append(df)
 #     traj_df_formatted.reset_index(drop=True, inplace=True)
 #     return traj_df_formatted
+
+
+# pd.options.mode.chained_assignment = None  # default='warn'
+
+# delta_t = 0.4
+# resampled_trajectory_list = []
+# for ped in tqdm(list(ped_traj_df.pedestrianId.unique())):
+#     df = ped_traj_df[ped_traj_df.pedestrianId == ped]
+#     ped_time_delta = np.diff(df.simTime.to_numpy())[0]
+#     if ped_time_delta < delta_t:
+#         print("Pedestrian delta should be larger for proper resampling!")
+#         break
+#     else:
+#         resampled_df = df.copy(deep=True)
+#         # Linear interpolation
+#         simTime = np.cumsum(delta_t * np.ones((len(df.simTime), 1)))
+# #         resampled_df.simTime = simTime
+#         resampled_df['startX-PID1'].iloc[1:] = df['startX-PID1'].iloc[:-1] + np.diff(df['startX-PID1'].to_numpy()) * delta_t / ped_time_delta
+#         resampled_df['startY-PID1'].iloc[1:] = df['startY-PID1'].iloc[:-1] + np.diff(df['startY-PID1'].to_numpy()) * delta_t / ped_time_delta
+#         resampled_df['endX-PID1'].iloc[1:] = df['endX-PID1'].iloc[:-1] + np.diff(df['endX-PID1'].to_numpy()) * delta_t / ped_time_delta
+#         resampled_df['endY-PID1'].iloc[1:] = df['endY-PID1'].iloc[:-1] + np.diff(df['endY-PID1'].to_numpy()) * delta_t / ped_time_delta
+#         resampled_df['simTime'].iloc[1:] = df['simTime'].iloc[:-1] + np.diff(df['simTime'].to_numpy()) * delta_t / ped_time_delta
+#         resampled_trajectory_list.append(resampled_df)
+# #         break
+# resampled_pred_traj = pd.concat(resampled_trajectory_list)
+
+# resampled_pred_traj
