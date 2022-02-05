@@ -1,7 +1,5 @@
 from abc import abstractmethod
-import numpy as np
 import pandas as pd
-import scipy
 from scipy import special
 import itertools
 
@@ -46,7 +44,7 @@ class HermitePairs(observables_dict):
 
         Args:
             data (pd.DataFrame): dataframe with the column structure as
-        ID      Var_1        Var_2
+        ID      time    Var_1        Var_2
 
         Returns:
             (pd.DataFrame): Same dataframe as input but with degree**2 additional columns each containing a hermite pair.
@@ -78,11 +76,11 @@ class HermitePairs(observables_dict):
 
         Args:
             data (pd.DataFrame): dataframe with the column structure as
-        ID      Var_1        Var_1        Obs_1       Obs_2       ...       Obs_N_k
+        ID      time    Var_1        Var_1        Obs_1       Obs_2       ...       Obs_N_k
 
         Returns:
             pd.DataFrame: dataframe with the column structure as
-        ID        Obs_1       Obs_2       ...       Obs_N_k
+        ID       time    Obs_1       Obs_2       ...       Obs_N_k
 
         """
         
@@ -107,11 +105,11 @@ class Identity(observables_dict):
 
         Args:
             data (pd.DataFrame): dataframe with the column structure as
-        ID      Var_1        Var_2      ...     Var_n
+        ID      time    Var_1        Var_2      ...     Var_n
 
         Returns:
             pd.DataFrame: dataframe with the column structure as
-        ID      Var_1        Var_2      ...     Var_n       Var_1        Var_2      ...     Var_n
+        ID      time    Var_1        Var_2      ...     Var_n       Var_1        Var_2      ...     Var_n
 
         """
                     
@@ -125,11 +123,11 @@ class Identity(observables_dict):
 
         Args:
             data (pd.DataFrame): dataframe with the column structure as
-        ID      Var_1        Var_2      ...     Var_n       Var_1        Var_2      ...     Var_n
+        ID      time    Var_1        Var_2      ...     Var_n       Var_1        Var_2      ...     Var_n
 
         Returns:
             pd.DataFrame: dataframe with the column structure as
-        ID      Var_1        Var_2      ...     Var_n
+        ID      time    Var_1        Var_2      ...     Var_n
 
         """
         
@@ -159,7 +157,7 @@ class Polynomials(observables_dict):
 
         Args:
             data (pd.DataFrame): dataframe with the column structure as
-        ID      Var_1        Var_2      ...     Var_n
+        ID      time    Var_1        Var_2      ...     Var_n
 
         Returns:
             (pd.DataFrame): Same dataframe as input but with N_k additional columns each containing a hermite pair.
@@ -191,11 +189,11 @@ class Polynomials(observables_dict):
 
         Args:
             data (pd.DataFrame): dataframe with the column structure as
-        ID      Var_1        Var_1        Obs_1       Obs_2       ...       Obs_N_k
+        ID      time    Var_1        Var_1        Obs_1       Obs_2       ...       Obs_N_k
 
         Returns:
             pd.DataFrame: dataframe with the column structure as
-        ID        Obs_1       Obs_2       ...       Obs_N_k
+        ID        time    Obs_1       Obs_2       ...       Obs_N_k
 
         """
         

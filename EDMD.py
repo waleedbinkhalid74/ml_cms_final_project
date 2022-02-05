@@ -10,14 +10,11 @@ class EDMD:
 
         Args:
             data (pd.DataFrame): Input data with column structure
-            ID      Independent_Var_1      ...     Independent_Var_n       Dependent_Var_1     ...     Dependent_Var_n
+            ID      time    Independent_Var_1      ...     Independent_Var_n       Dependent_Var_1     ...     Dependent_Var_n
             
             dim (int): Dimensionality of data
             dict (observables_dict): Dictionary of observables to be applied to the data for the calculation of hte Koopman operator approximation matrix 
-        """
-        # TODO: Data dimensions should be infered and should not have to be provided by user. Moreover the algorithm should be applied to data of all dimensionality
-        # TODO: Qais please see if you can remove this.
-        
+        """        
         self.raw_data = data # Actual data as Dataframe
         self.dim = dim # Dimensionality of data
         self.x_data, self.y_data = self.segregate_xy()
@@ -36,7 +33,7 @@ class EDMD:
 
         Returns:
             Tuple[pd.DataFrame, pd.DataFrame]: The independent and dependent variable in separate dataframes. both dataframes have ID as their first column and have a column structure as 
-            ID      Var_1        Var_2      ...     Var_n
+            ID      time    Var_1        Var_2      ...     Var_n
 
         """
 
@@ -120,7 +117,7 @@ class EDMD:
 
         Args:
             data (pd.DataFrame): Input data of structure
-            ID      Var_1        Var_2      ...     Var_n
+            ID      time    Var_1        Var_2      ...     Var_n
 
         Returns:
             np.array: eigenfunctions stacked in a matrix
@@ -133,7 +130,7 @@ class EDMD:
 
         Args:
             data (pd.DataFrame): Input data of structure
-            ID      Var_1        Var_2      ...     Var_n
+            ID      time    Var_1        Var_2      ...     Var_n
             eigvec_pos (int): Position of eigenvector based on the sorted eigenvalues list  
 
         Returns:
@@ -148,7 +145,7 @@ class EDMD:
 
         Args:
             data (pd.DataFrame): Input data of structure
-            ID      Var_1        Var_2      ...     Var_n
+            ID      time    Var_1        Var_2      ...     Var_n
             
         Returns:
             pd.DataFrame: Dictionary of observables in format
@@ -163,7 +160,7 @@ class EDMD:
 
         Args:
             initial_value_df (pd.DataFrame): Initial condition data of structure
-            ID      Var_1        Var_2      ...     Var_n
+            ID      time    Var_1        Var_2      ...     Var_n
             t_end (int): final timestep
 
         Returns:
