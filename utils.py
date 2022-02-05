@@ -1,6 +1,30 @@
 import pandas as pd
 from tqdm import tqdm 
 import numpy as np
+from EDMD import EDMD
+
+
+def make_eigenfunction(X: np.array, Y: np.array, model: EDMD, eigvec_log: int) -> np.array:
+    """Calculates the eigenfunction at given points for a fitted EDMD model at a specific eigenvector
+
+    Args:
+        X (np.array): X coordinates
+        Y (np.array): Y coordinates
+        model (EDMD): fitted EDMD model
+        eigvec_log (int): eigenvector position at which to calculate the eigenfunction
+
+    Returns:
+        np.array: eigenfunction
+    """
+    eigenfunction = []
+    for i in range(Y.shape[1]):
+        temp = pd.DataFrame(np.array([X[:,i], Y[:,i]]).T, columns=['x', 'y'])
+        temp.insert(0, 'ID', 0)
+        temp.insert(1, 'time', np.arange(0, Y.shape[1]))
+        a = model.calculate_eigenfunction(temp, eigvec_log)
+        eigenfunction.append(a)
+    eigenfunction = np.array(eigenfunction).T
+    return eigenfunction.real
 
 def plot_data(data: pd.DataFrame, ax):
     """Plots the trajectories for all snapshot pair datapoints
