@@ -1,4 +1,4 @@
-# ml_cms_final_project
+# Machine Learning in Crowd Modeling & Simulation: Final Project
 
 In this project, we examine two algorithms used to approximate the Koopman operator, the dynamic mode decomposition, DMD, and its extension EDMD algorithms. 
 
