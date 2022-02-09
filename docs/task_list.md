@@ -13,13 +13,13 @@
 ~~Qais: Compare DMD with mathlab and debug. Once bad code lines are found, push code and communicate~~
 ~~Waleed: Task 5~~
 ~~Waleed: Ask professor regarding termination of trajectories.~~
+~~Yiming: Task 3.1 check and 3.2~~
+~~Waleed, Yiming, Qais: Review report.~~
+~~Waleed: add docstring~~
 
-Yiming: Task 3.1 check and 3.2
-Qais: Generalize EDMD and observable code for 2 dimensions
-Waleed, Yiming, Qais: Review report.
-Waleed: add docstring
-Qais: add docstrings and markdown
+Qais: add markdown
 Waleed, Yiming, Qais: Improve presentation based on comments.
+Qais: Generalize EDMD and observable code for 2 dimensions
 
 Next Meeting: Saturday 5 Feb 2022 (10 am) | Sunday 6 Feb 2022 (10 am)
 
