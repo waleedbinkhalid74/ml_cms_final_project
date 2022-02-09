@@ -16,10 +16,8 @@
 ~~Yiming: Task 3.1 check and 3.2~~
 ~~Waleed, Yiming, Qais: Review report.~~
 ~~Waleed: add docstring~~
-
-Qais: add markdown
-Waleed, Yiming, Qais: Improve presentation based on comments.
-Qais: Generalize EDMD and observable code for 2 dimensions
+~~Qais: add markdown~~
+~~Waleed, Yiming, Qais: Improve presentation based on comments.~~
 
 Next Meeting: Saturday 5 Feb 2022 (10 am) | Sunday 6 Feb 2022 (10 am)
 
